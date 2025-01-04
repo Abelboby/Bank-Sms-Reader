@@ -77,9 +77,9 @@ Debit Format:
 
 ## 📲 Installation
 
-[![GitHub Release](https://img.shields.io/github/v/release/abelboby/flowtrack?color=blue)](https://github.com/abelboby/flowtrack/releases/latest)
+[![GitHub Release](https://img.shields.io/github/v/release/abelboby/Bank-Sms-Reader?color=blue)](https://github.com/abelboby/Bank-Sms-Reader/releases/latest)
 
-1. Download the APK from the [releases section](https://github.com/abelboby/flowtrack/releases)
+1. Download the APK from the [releases section](https://github.com/abelboby/Bank-Sms-Reader/releases)
 2. Enable "Install from Unknown Sources" in your device settings
 3. Install the APK
 4. Grant SMS permissions when prompted
