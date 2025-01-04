@@ -16,12 +16,18 @@ FlowTrack is a modern, user-friendly mobile application designed to help you tra
     <tr>
       <td align="center"><strong>Home Screen</strong></td>
       <td align="center"><strong>Analytics</strong></td>
-      <td align="center"><strong>Search & Filter</strong></td>
     </tr>
     <tr>
-      <td><img src="screenshots/homepage.jpg" width="200"/></td>
-      <td><img src="screenshots/summary.jpg" width="200"/></td>
-      <td><img src="screenshots/search.jpg" width="200"/></td>
+      <td><img src="screenshots/homepage.png" width="200"/></td>
+      <td><img src="screenshots/summary.png" width="200"/></td>
+    </tr>
+    <tr>
+    <td align="center"><strong>Search</strong></td>
+    <td align="center"><strong>Filter</strong></td>
+    </tr>
+    <tr>
+      <td><img src="screenshots/search.png" width="200"/></td>
+      <td><img src="screenshots/filter.png" width="200"/></td>
     </tr>
   </table>
 </div>
@@ -136,9 +142,9 @@ Feel free to fork this project and submit pull requests. You can help by:
 ## 📝 Contact
 
 For support or queries:
-- Email: [Your Email]
-- Twitter: [@YourHandle]
-- GitHub: [Your GitHub]
+- Email: abeldavisboby@gmail.com
+- LinkedIn: linkedin.com/in/abeldavisboby
+- GitHub: github.com/abelboby
 
 ---
 
