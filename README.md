@@ -142,9 +142,9 @@ Feel free to fork this project and submit pull requests. You can help by:
 ## 📝 Contact
 
 For support or queries:
-- Email: abeldavisboby@gmail.com
-- LinkedIn: linkedin.com/in/abeldavisboby
-- GitHub: github.com/abelboby
+- Email: [abeldavisboby@gmail.com](mailto:abeldavisboby@gmail.com)
+- LinkedIn: [Abel Davis Boby](https://www.linkedin.com/in/abeldavisboby)
+- GitHub: [AbelBoby](https://github.com/abelboby)
 
 ---
 
