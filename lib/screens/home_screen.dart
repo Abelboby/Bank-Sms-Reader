@@ -3,6 +3,7 @@ import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:ui';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../services/sms_parser_service.dart';
@@ -170,194 +171,244 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
       });
 
     return Scaffold(
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 120,
-            floating: true,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                'Bank Transactions',
-                style: TextStyle(
-                  color: theme.colorScheme.onBackground,
-                ),
-              ),
-              centerTitle: true,
-              background: Container(
-                color: theme.colorScheme.surface,
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.analytics_outlined),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => StatsScreen(
-                        transactions: transactions,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              IconButton(
-                icon: Badge(
-                  isLabelVisible: _currentFilter != null,
-                  child: const Icon(Icons.filter_list),
-                ),
-                onPressed: _showFilterDialog,
-              ),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: readMessages,
-              ),
-              IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsScreen(),
-                    ),
-                  );
-                },
-              ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.surface,
+              theme.colorScheme.surface.withOpacity(0.95),
             ],
           ),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                TransactionSearchBar(
-                  controller: _searchController,
-                  hasSearchTerm: _searchTerm.isNotEmpty,
-                  onChanged: (value) {
-                    setState(() {
-                      _searchTerm = value;
-                    });
-                  },
-                  onClear: () {
-                    setState(() {
-                      _searchTerm = '';
-                      _searchController.clear();
-                    });
+        ),
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 180,
+              floating: true,
+              pinned: true,
+              backgroundColor: theme.scaffoldBackgroundColor,
+              flexibleSpace: FlexibleSpaceBar(
+                title: Text(
+                  'Transactions',
+                  style: TextStyle(
+                    color: theme.colorScheme.onBackground,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                background: Container(
+                  color: theme.scaffoldBackgroundColor,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    Icons.analytics_outlined,
+                    color: theme.colorScheme.onBackground,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => StatsScreen(
+                          transactions: transactions,
+                        ),
+                      ),
+                    );
                   },
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
+                IconButton(
+                  icon: Badge(
+                    isLabelVisible: _currentFilter != null,
+                    child: Icon(
+                      Icons.filter_list,
+                      color: theme.colorScheme.onBackground,
+                    ),
+                  ),
+                  onPressed: _showFilterDialog,
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.refresh,
+                    color: theme.colorScheme.onBackground,
+                  ),
+                  onPressed: readMessages,
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.settings,
+                    color: theme.colorScheme.onBackground,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: _GlassmorphicContainer(
+                      child: TransactionSearchBar(
+                        controller: _searchController,
+                        hasSearchTerm: _searchTerm.isNotEmpty,
+                        onChanged: (value) {
+                          setState(() {
+                            _searchTerm = value;
+                          });
+                        },
+                        onClear: () {
+                          setState(() {
+                            _searchTerm = '';
+                            _searchController.clear();
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: _GlassmorphicContainer(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Total Transactions',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: theme.colorScheme.onSurface
+                                        .withOpacity(0.7),
+                                  ),
+                                ),
+                                Text(
+                                  displayTransactions.length.toString(),
+                                  style:
+                                      theme.textTheme.headlineMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (_currentFilter != null ||
+                                _searchTerm.isNotEmpty)
+                              TextButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _currentFilter = null;
+                                    _searchTerm = '';
+                                    _searchController.clear();
+                                  });
+                                },
+                                icon: const Icon(Icons.clear),
+                                label: const Text('Clear All'),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isLoading)
+              const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (displayTransactions.isEmpty)
+              SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Total Transactions',
-                            style: theme.textTheme.titleMedium,
-                          ),
-                          Text(
-                            displayTransactions.length.toString(),
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.primary,
+                      Icon(
+                        Icons.search_off_outlined,
+                        size: 64,
+                        color: theme.colorScheme.primary.withOpacity(0.5),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No transactions found',
+                        style: theme.textTheme.titleLarge,
+                      ),
+                      if (_searchTerm.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            'Try a different search term',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onBackground
+                                  .withOpacity(0.6),
                             ),
                           ),
-                        ],
-                      ),
-                      if (_currentFilter != null || _searchTerm.isNotEmpty)
-                        TextButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _currentFilter = null;
-                              _searchTerm = '';
-                              _searchController.clear();
-                            });
-                          },
-                          icon: const Icon(Icons.clear),
-                          label: const Text('Clear All'),
+                        )
+                      else if (_currentFilter != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            'Try clearing the filter',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onBackground
+                                  .withOpacity(0.6),
+                            ),
+                          ),
                         ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          if (isLoading)
-            const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (displayTransactions.isEmpty)
-            SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.search_off_outlined,
-                      size: 64,
-                      color: theme.colorScheme.primary.withOpacity(0.5),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No transactions found',
-                      style: theme.textTheme.titleLarge,
-                    ),
-                    if (_searchTerm.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          'Try a different search term',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color:
-                                theme.colorScheme.onBackground.withOpacity(0.6),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index >= sortedDates.length) return null;
+
+                      final date = sortedDates[index];
+                      final dateTransactions = groupedTransactions[date]!;
+                      dateTransactions
+                          .sort((a, b) => b.amount.compareTo(a.amount));
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _GlassmorphicContainer(
+                          child: Column(
+                            children: [
+                              DateHeader(
+                                date: date,
+                                transactionCount: dateTransactions.length,
+                              ),
+                              ...dateTransactions
+                                  .map((transaction) => TransactionCard(
+                                        transaction: transaction,
+                                      )),
+                            ],
                           ),
                         ),
-                      )
-                    else if (_currentFilter != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          'Try clearing the filter',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color:
-                                theme.colorScheme.onBackground.withOpacity(0.6),
-                          ),
-                        ),
-                      ),
-                  ],
+                      );
+                    },
+                  ),
                 ),
               ),
-            )
-          else
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  if (index >= sortedDates.length) return null;
-
-                  final date = sortedDates[index];
-                  final dateTransactions = groupedTransactions[date]!;
-                  dateTransactions.sort((a, b) => b.amount.compareTo(a.amount));
-
-                  return Column(
-                    children: [
-                      DateHeader(
-                        date: date,
-                        transactionCount: dateTransactions.length,
-                      ),
-                      ...dateTransactions.map((transaction) => TransactionCard(
-                            transaction: transaction,
-                          )),
-                    ],
-                  );
-                },
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton:
           _currentFilter == null && !isLoading && displayTransactions.isNotEmpty
-              ? FloatingActionButton(
+              ? FloatingActionButton.extended(
                   onPressed: () {
                     _scrollController.animateTo(
                       0,
@@ -365,9 +416,77 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
                       curve: Curves.easeOut,
                     );
                   },
-                  child: const Icon(Icons.arrow_upward),
+                  icon: const Icon(Icons.arrow_upward),
+                  label: const Text('Top'),
                 )
               : null,
     );
   }
+}
+
+class _GlassmorphicContainer extends StatelessWidget {
+  final Widget child;
+
+  const _GlassmorphicContainer({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.1),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class _GradientOverlayPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    const radius = 100.0;
+    final circles = [
+      Offset(size.width * 0.1, size.height * 0.1),
+      Offset(size.width * 0.5, -radius),
+      Offset(size.width * 0.8, size.height * 0.2),
+    ];
+
+    for (final center in circles) {
+      final gradient = RadialGradient(
+        center: Alignment.center,
+        radius: 1.0,
+        colors: [
+          const Color(0xFF424242).withOpacity(0.3),
+          const Color(0xFF424242).withOpacity(0.0),
+        ],
+        stops: const [0.0, 1.0],
+      );
+
+      paint.shader = gradient.createShader(
+        Rect.fromCircle(center: center, radius: radius),
+      );
+
+      canvas.drawCircle(center, radius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GradientOverlayPainter oldDelegate) => false;
 }

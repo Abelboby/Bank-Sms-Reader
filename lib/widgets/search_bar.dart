@@ -2,68 +2,63 @@ import 'package:flutter/material.dart';
 
 class TransactionSearchBar extends StatelessWidget {
   final TextEditingController controller;
-  final VoidCallback onClear;
-  final Function(String) onChanged;
   final bool hasSearchTerm;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
 
   const TransactionSearchBar({
     super.key,
     required this.controller,
-    required this.onClear,
-    required this.onChanged,
     required this.hasSearchTerm,
+    required this.onChanged,
+    required this.onClear,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.onSurface.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              onChanged: onChanged,
+              style: theme.textTheme.bodyLarge,
+              decoration: InputDecoration(
+                hintText: 'Search transactions...',
+                hintStyle: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                ),
+                suffixIcon: hasSearchTerm
+                    ? IconButton(
+                        icon: Icon(
+                          Icons.clear,
+                          color: theme.colorScheme.onSurface.withOpacity(0.5),
+                        ),
+                        onPressed: onClear,
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+            ),
           ),
         ],
-      ),
-      child: TextField(
-        controller: controller,
-        onChanged: onChanged,
-        style: theme.textTheme.bodyLarge,
-        decoration: InputDecoration(
-          hintText: 'Search transactions...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: hasSearchTerm
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: onClear,
-                )
-              : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: theme.colorScheme.outline.withOpacity(0.5),
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: theme.colorScheme.outline.withOpacity(0.2),
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: theme.colorScheme.primary,
-            ),
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-        ),
       ),
     );
   }

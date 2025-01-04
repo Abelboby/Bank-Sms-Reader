@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/transaction.dart';
+import 'package:intl/intl.dart';
 
 class TransactionCard extends StatelessWidget {
   final Transaction transaction;
@@ -11,123 +12,112 @@ class TransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isCredit = transaction.type == 'Credit';
     final theme = Theme.of(context);
+    final isCredit = transaction.type == 'Credit';
+    final currencyFormat = NumberFormat.currency(
+      symbol: '₹',
+      locale: 'en_IN',
+      decimalDigits: 2,
+    );
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: (isCredit ? Colors.green : Colors.red).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Icon(
+                isCredit ? Icons.arrow_downward : Icons.arrow_upward,
+                color: isCredit ? Colors.green : Colors.red,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isCredit
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
+                if (transaction.receiverName?.isNotEmpty ?? false)
+                  Text(
+                    transaction.receiverName!,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isCredit ? Icons.arrow_downward : Icons.arrow_upward,
-                        size: 16,
-                        color: isCredit ? Colors.green : Colors.red,
+                if (transaction.accountNumber.isNotEmpty)
+                  Text(
+                    'A/c: ${transaction.accountNumber}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        transaction.type,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isCredit ? Colors.green : Colors.red,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceVariant,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        transaction.bank,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '₹${transaction.amount}',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isCredit ? Colors.green : Colors.red,
-                  ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '•',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface.withOpacity(0.3),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      transaction.refNo,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            _buildInfoRow(
-              context,
-              icon: Icons.account_balance,
-              label: transaction.bank,
-            ),
-            if (transaction.accountNumber.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              _buildInfoRow(
-                context,
-                icon: Icons.credit_card,
-                label: 'A/c: ${transaction.accountNumber}',
-              ),
-            ],
-            if (transaction.receiverName?.isNotEmpty ?? false) ...[
-              const SizedBox(height: 8),
-              _buildInfoRow(
-                context,
-                icon: Icons.person_outline,
-                label:
-                    '${isCredit ? 'From' : 'To'}: ${transaction.receiverName}',
-              ),
-            ],
-            if (transaction.balance != null) ...[
-              const SizedBox(height: 8),
-              _buildInfoRow(
-                context,
-                icon: Icons.account_balance_wallet_outlined,
-                label: 'Balance: ₹${transaction.balance}',
-              ),
-            ],
-            if (transaction.refNo.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              _buildInfoRow(
-                context,
-                icon: Icons.numbers,
-                label: 'Ref: ${transaction.refNo}',
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-  }) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 16,
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                ),
           ),
-        ),
-      ],
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                currencyFormat.format(transaction.amount),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isCredit ? Colors.green : Colors.red,
+                ),
+              ),
+              if (transaction.balance != null)
+                Text(
+                  'Balance: ${currencyFormat.format(transaction.balance)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
