@@ -11,6 +11,7 @@ import '../widgets/transaction_card.dart';
 import '../widgets/date_header.dart';
 import '../widgets/search_bar.dart';
 import 'settings_screen.dart';
+import 'stats_screen.dart';
 
 class SMSReaderPage extends StatefulWidget {
   const SMSReaderPage({super.key});
@@ -189,6 +190,19 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
               ),
             ),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.analytics_outlined),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StatsScreen(
+                        transactions: transactions,
+                      ),
+                    ),
+                  );
+                },
+              ),
               IconButton(
                 icon: Badge(
                   isLabelVisible: _currentFilter != null,

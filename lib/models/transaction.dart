@@ -1,44 +1,39 @@
 import 'package:flutter/material.dart';
 
 class Transaction {
+  final String type;
   final double amount;
   final String date;
-  final String refNo;
   final String bank;
-  final String type;
+  final String refNo;
   final String accountNumber;
   final double? balance;
   final String? receiverName;
-  late final DateTime parsedDate;
+  final DateTime parsedDate;
 
   Transaction({
+    required this.type,
     required this.amount,
     required this.date,
-    required this.refNo,
     required this.bank,
-    required this.type,
+    required this.refNo,
     this.accountNumber = '',
     this.balance,
     this.receiverName,
-  }) {
-    parsedDate = _parseDate(date);
-  }
+  }) : parsedDate = _parseDate(date);
 
   static DateTime _parseDate(String date) {
-    // Handle both formats: "24Mar24" and "24-12-2024"
-    if (date.contains('-')) {
-      final parts = date.split('-');
-      return DateTime(
-        int.parse(parts[2].substring(0, 4)),
-        int.parse(parts[1]),
-        int.parse(parts[0]),
-      );
-    } else {
-      final day = int.parse(date.substring(0, 2));
-      final month = _parseMonth(date.substring(2, 5));
-      final year = 2000 + int.parse(date.substring(5));
+    // Handle date format like "24Mar25"
+    final RegExp dateRegex = RegExp(r'(\d{2})([A-Za-z]{3})(\d{2})');
+    final match = dateRegex.firstMatch(date);
+    if (match != null) {
+      final day = int.parse(match.group(1)!);
+      final month = _parseMonth(match.group(2)!);
+      final year = 2000 + int.parse(match.group(3)!);
       return DateTime(year, month, day);
     }
+    // Fallback to current date if parsing fails
+    return DateTime.now();
   }
 
   static int _parseMonth(String month) {
@@ -59,29 +54,29 @@ class Transaction {
     return months[month] ?? 1;
   }
 
-  factory Transaction.fromJson(Map<String, dynamic> json) {
-    return Transaction(
-      amount: json['amount'],
-      date: json['date'],
-      refNo: json['refNo'],
-      bank: json['bank'],
-      type: json['type'],
-      accountNumber: json['accountNumber'] ?? '',
-      balance: json['balance']?.toDouble(),
-      receiverName: json['receiverName'],
-    );
-  }
-
   Map<String, dynamic> toJson() {
     return {
+      'type': type,
       'amount': amount,
       'date': date,
-      'refNo': refNo,
       'bank': bank,
-      'type': type,
+      'refNo': refNo,
       'accountNumber': accountNumber,
       'balance': balance,
       'receiverName': receiverName,
     };
+  }
+
+  factory Transaction.fromJson(Map<String, dynamic> json) {
+    return Transaction(
+      type: json['type'] as String,
+      amount: json['amount'] as double,
+      date: json['date'] as String,
+      bank: json['bank'] as String,
+      refNo: json['refNo'] as String,
+      accountNumber: json['accountNumber'] as String? ?? '',
+      balance: json['balance']?.toDouble(),
+      receiverName: json['receiverName'] as String?,
+    );
   }
 }
