@@ -77,7 +77,9 @@ Debit Format:
 
 ## 📲 Installation
 
-1. Download the APK from the releases section
+[![GitHub Release](https://img.shields.io/github/v/release/abelboby/flowtrack?color=blue)](https://github.com/abelboby/flowtrack/releases/latest)
+
+1. Download the APK from the [releases section](https://github.com/abelboby/flowtrack/releases)
 2. Enable "Install from Unknown Sources" in your device settings
 3. Install the APK
 4. Grant SMS permissions when prompted
