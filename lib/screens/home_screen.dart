@@ -9,6 +9,7 @@ import '../services/sms_parser_service.dart';
 import '../widgets/filter_dialog.dart';
 import '../widgets/transaction_card.dart';
 import '../widgets/date_header.dart';
+import '../widgets/search_bar.dart';
 import 'settings_screen.dart';
 
 class SMSReaderPage extends StatefulWidget {
@@ -24,6 +25,8 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
   bool isLoading = true;
   TransactionFilter? _currentFilter;
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchTerm = '';
 
   @override
   void initState() {
@@ -34,12 +37,26 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   List<Transaction> get filteredTransactions {
-    if (_currentFilter == null) return transactions;
-    return transactions.applyFilter(_currentFilter!);
+    var filtered = _currentFilter == null
+        ? transactions
+        : transactions.applyFilter(_currentFilter!);
+
+    if (_searchTerm.isEmpty) return filtered;
+
+    return filtered.where((transaction) {
+      final searchLower = _searchTerm.toLowerCase();
+      return transaction.bank.toLowerCase().contains(searchLower) ||
+          transaction.receiverName?.toLowerCase().contains(searchLower) ==
+              true ||
+          transaction.refNo.toLowerCase().contains(searchLower) ||
+          transaction.amount.toString().contains(searchLower) ||
+          transaction.accountNumber.toLowerCase().contains(searchLower);
+    }).toList();
   }
 
   Future<void> initPlatformState() async {
@@ -197,38 +214,59 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
             ],
           ),
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
+              children: [
+                TransactionSearchBar(
+                  controller: _searchController,
+                  hasSearchTerm: _searchTerm.isNotEmpty,
+                  onChanged: (value) {
+                    setState(() {
+                      _searchTerm = value;
+                    });
+                  },
+                  onClear: () {
+                    setState(() {
+                      _searchTerm = '';
+                      _searchController.clear();
+                    });
+                  },
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
                     children: [
-                      Text(
-                        'Total Transactions',
-                        style: theme.textTheme.titleMedium,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Total Transactions',
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          Text(
+                            displayTransactions.length.toString(),
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        displayTransactions.length.toString(),
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.primary,
+                      if (_currentFilter != null || _searchTerm.isNotEmpty)
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _currentFilter = null;
+                              _searchTerm = '';
+                              _searchController.clear();
+                            });
+                          },
+                          icon: const Icon(Icons.clear),
+                          label: const Text('Clear All'),
                         ),
-                      ),
                     ],
                   ),
-                  if (_currentFilter != null)
-                    TextButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _currentFilter = null;
-                        });
-                      },
-                      icon: const Icon(Icons.clear),
-                      label: const Text('Clear Filter'),
-                    ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           if (isLoading)
@@ -242,7 +280,7 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.inbox_outlined,
+                      Icons.search_off_outlined,
                       size: 64,
                       color: theme.colorScheme.primary.withOpacity(0.5),
                     ),
@@ -251,7 +289,18 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
                       'No transactions found',
                       style: theme.textTheme.titleLarge,
                     ),
-                    if (_currentFilter != null)
+                    if (_searchTerm.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Try a different search term',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color:
+                                theme.colorScheme.onBackground.withOpacity(0.6),
+                          ),
+                        ),
+                      )
+                    else if (_currentFilter != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
