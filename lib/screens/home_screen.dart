@@ -7,6 +7,8 @@ import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../services/sms_parser_service.dart';
 import '../widgets/filter_dialog.dart';
+import '../widgets/transaction_card.dart';
+import '../widgets/date_header.dart';
 import 'settings_screen.dart';
 
 class SMSReaderPage extends StatefulWidget {
@@ -21,11 +23,18 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
   List<Transaction> transactions = [];
   bool isLoading = true;
   TransactionFilter? _currentFilter;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   List<Transaction> get filteredTransactions {
@@ -122,6 +131,7 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
   @override
   Widget build(BuildContext context) {
     final displayTransactions = filteredTransactions;
+    final theme = Theme.of(context);
 
     // Group transactions by formatted date
     final Map<String, List<Transaction>> groupedTransactions = {};
@@ -142,171 +152,159 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
       });
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bank Transactions'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          IconButton(
-            icon: Badge(
-              isLabelVisible: _currentFilter != null,
-              child: const Icon(Icons.filter_list),
-            ),
-            onPressed: _showFilterDialog,
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: readMessages,
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: true,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                'Bank Transactions',
+                style: TextStyle(
+                  color: theme.colorScheme.onBackground,
                 ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Text(
-                  'Total Transactions: ${displayTransactions.length}',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                if (_currentFilter != null)
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _currentFilter = null;
-                      });
-                    },
-                    child: const Text('Clear Filter'),
-                  ),
-              ],
+              ),
+              centerTitle: true,
+              background: Container(
+                color: theme.colorScheme.surface,
+              ),
             ),
+            actions: [
+              IconButton(
+                icon: Badge(
+                  isLabelVisible: _currentFilter != null,
+                  child: const Icon(Icons.filter_list),
+                ),
+                onPressed: _showFilterDialog,
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: readMessages,
+              ),
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : displayTransactions.isEmpty
-                    ? const Center(child: Text('No transactions found'))
-                    : ListView.builder(
-                        itemCount: sortedDates.length,
-                        itemBuilder: (context, dateIndex) {
-                          final date = sortedDates[dateIndex];
-                          final dateTransactions = groupedTransactions[date]!;
-
-                          // Sort transactions within the date by amount
-                          dateTransactions
-                              .sort((a, b) => b.amount.compareTo(a.amount));
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primaryContainer
-                                    .withOpacity(0.3),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      date,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      '${dateTransactions.length} transactions',
-                                      style:
-                                          Theme.of(context).textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              ...dateTransactions.map((transaction) => Card(
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    child: ListTile(
-                                      leading: CircleAvatar(
-                                        backgroundColor:
-                                            transaction.type == 'Credit'
-                                                ? Colors.green.shade100
-                                                : Colors.red.shade100,
-                                        child: Icon(
-                                          transaction.type == 'Credit'
-                                              ? Icons.arrow_downward
-                                              : Icons.arrow_upward,
-                                          color: transaction.type == 'Credit'
-                                              ? Colors.green
-                                              : Colors.red,
-                                        ),
-                                      ),
-                                      title: Row(
-                                        children: [
-                                          Text(
-                                            '₹${transaction.amount}',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Text(
-                                            transaction.type,
-                                            style: TextStyle(
-                                              color:
-                                                  transaction.type == 'Credit'
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      subtitle: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const SizedBox(height: 4),
-                                          Text('Bank: ${transaction.bank}'),
-                                          if (transaction
-                                              .accountNumber.isNotEmpty)
-                                            Text(
-                                                'A/c: ${transaction.accountNumber}'),
-                                          if (transaction.balance != null)
-                                            Text(
-                                                'Balance: ₹${transaction.balance}'),
-                                          if (transaction
-                                                  .receiverName?.isNotEmpty ??
-                                              false)
-                                            Text(
-                                                '${transaction.type == 'Credit' ? 'From' : 'To'}: ${transaction.receiverName}'),
-                                          if (transaction.refNo.isNotEmpty)
-                                            Text('Ref: ${transaction.refNo}'),
-                                        ],
-                                      ),
-                                      isThreeLine: true,
-                                    ),
-                                  )),
-                            ],
-                          );
-                        },
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Total Transactions',
+                        style: theme.textTheme.titleMedium,
                       ),
+                      Text(
+                        displayTransactions.length.toString(),
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_currentFilter != null)
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _currentFilter = null;
+                        });
+                      },
+                      icon: const Icon(Icons.clear),
+                      label: const Text('Clear Filter'),
+                    ),
+                ],
+              ),
+            ),
           ),
+          if (isLoading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (displayTransactions.isEmpty)
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.inbox_outlined,
+                      size: 64,
+                      color: theme.colorScheme.primary.withOpacity(0.5),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No transactions found',
+                      style: theme.textTheme.titleLarge,
+                    ),
+                    if (_currentFilter != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Try clearing the filter',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color:
+                                theme.colorScheme.onBackground.withOpacity(0.6),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            )
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  if (index >= sortedDates.length) return null;
+
+                  final date = sortedDates[index];
+                  final dateTransactions = groupedTransactions[date]!;
+                  dateTransactions.sort((a, b) => b.amount.compareTo(a.amount));
+
+                  return Column(
+                    children: [
+                      DateHeader(
+                        date: date,
+                        transactionCount: dateTransactions.length,
+                      ),
+                      ...dateTransactions.map((transaction) => TransactionCard(
+                            transaction: transaction,
+                          )),
+                    ],
+                  );
+                },
+              ),
+            ),
         ],
       ),
+      floatingActionButton:
+          _currentFilter == null && !isLoading && displayTransactions.isNotEmpty
+              ? FloatingActionButton(
+                  onPressed: () {
+                    _scrollController.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeOut,
+                    );
+                  },
+                  child: const Icon(Icons.arrow_upward),
+                )
+              : null,
     );
   }
 }
