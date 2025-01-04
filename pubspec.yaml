@@ -1,5 +1,5 @@
-name: transactalert
-description: "Bank SMS transaction tracker and analyzer"
+name: flowtrack
+description: "A modern bank SMS transaction tracker and analyzer that helps you monitor your financial flow with beautiful visualizations and insights."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
