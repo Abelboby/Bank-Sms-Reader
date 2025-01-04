@@ -16,21 +16,25 @@ class StatsScreen extends StatefulWidget {
   State<StatsScreen> createState() => _StatsScreenState();
 }
 
-class _StatsScreenState extends State<StatsScreen> {
+class _StatsScreenState extends State<StatsScreen>
+    with SingleTickerProviderStateMixin {
   late DateTime _selectedMonth;
   late TransactionStats _stats;
   final ScrollController _scrollController = ScrollController();
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _selectedMonth = DateTime.now();
     _updateStats();
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -60,99 +64,123 @@ class _StatsScreenState extends State<StatsScreen> {
             ],
           ),
         ),
-        child: CustomScrollView(
+        child: NestedScrollView(
           controller: _scrollController,
-          slivers: [
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
             SliverAppBar(
-              expandedHeight: 200,
+              expandedHeight: 280,
               floating: false,
               pinned: true,
               backgroundColor: theme.scaffoldBackgroundColor,
               flexibleSpace: FlexibleSpaceBar(
-                title: Text(
-                  'Financial Analytics',
-                  style: TextStyle(
-                    color: theme.colorScheme.onBackground,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                background: Container(
-                  color: theme.scaffoldBackgroundColor,
-                  padding: const EdgeInsets.only(
-                    bottom: kToolbarHeight + 16,
-                    left: 16,
-                  ),
-                  alignment: Alignment.bottomLeft,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                background: _GlassmorphicCard(
+                  child: Stack(
                     children: [
-                      Text(
-                        DateFormat('MMMM yyyy').format(_selectedMonth),
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          color:
-                              theme.colorScheme.onBackground.withOpacity(0.7),
-                          fontWeight: FontWeight.w300,
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: _GradientOverlayPainter(),
                         ),
                       ),
-                      Text(
-                        currencyFormat.format(_stats.totalDebit),
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          color: theme.colorScheme.onBackground,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Total Spending',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color:
-                              theme.colorScheme.onBackground.withOpacity(0.5),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 80, 24, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Monthly Overview',
+                                      style:
+                                          theme.textTheme.titleLarge?.copyWith(
+                                        color: theme.colorScheme.onSurface
+                                            .withOpacity(0.7),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      DateFormat('MMMM yyyy')
+                                          .format(_selectedMonth),
+                                      style: theme.textTheme.headlineMedium
+                                          ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                IconButton.filled(
+                                  onPressed: () async {
+                                    final date = await showDatePicker(
+                                      context: context,
+                                      initialDate: _selectedMonth,
+                                      firstDate: DateTime(2020),
+                                      lastDate: DateTime.now(),
+                                      initialDatePickerMode:
+                                          DatePickerMode.year,
+                                    );
+                                    if (date != null) {
+                                      setState(() {
+                                        _selectedMonth = date;
+                                        _updateStats();
+                                      });
+                                    }
+                                  },
+                                  icon: const Icon(Icons.calendar_month),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 32),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildOverviewCard(
+                                    theme,
+                                    'Income',
+                                    _stats.totalCredit,
+                                    Colors.green,
+                                    Icons.arrow_downward,
+                                    currencyFormat,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildOverviewCard(
+                                    theme,
+                                    'Expense',
+                                    _stats.totalDebit,
+                                    Colors.red,
+                                    Icons.arrow_upward,
+                                    currencyFormat,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              actions: [
-                IconButton(
-                  icon: Icon(
-                    Icons.calendar_month,
-                    color: theme.colorScheme.onBackground,
-                  ),
-                  onPressed: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedMonth,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime.now(),
-                      initialDatePickerMode: DatePickerMode.year,
-                    );
-                    if (date != null) {
-                      setState(() {
-                        _selectedMonth = date;
-                        _updateStats();
-                      });
-                    }
-                  },
-                ),
-              ],
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildSummaryCard(theme, currencyFormat),
-                  const SizedBox(height: 16),
-                  _buildSpendingInsightsCard(theme, currencyFormat),
-                  const SizedBox(height: 16),
-                  _buildTopReceiversCard(theme, currencyFormat),
-                  const SizedBox(height: 16),
-                  _buildBankwiseStats(theme, currencyFormat),
-                  const SizedBox(height: 80),
-                ]),
+              bottom: TabBar(
+                controller: _tabController,
+                tabs: const [
+                  Tab(text: 'Insights'),
+                  Tab(text: 'Distribution'),
+                ],
               ),
             ),
           ],
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildInsightsTab(theme, currencyFormat),
+              _buildDistributionTab(theme, currencyFormat),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -169,218 +197,7 @@ class _StatsScreenState extends State<StatsScreen> {
     );
   }
 
-  Widget _buildSummaryCard(ThemeData theme, NumberFormat format) {
-    return _GlassmorphicCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Monthly Overview',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatItem(
-                  theme,
-                  'Income',
-                  _stats.totalCredit,
-                  Colors.green,
-                  Icons.arrow_downward,
-                  format,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildStatItem(
-                  theme,
-                  'Expense',
-                  _stats.totalDebit,
-                  Colors.red,
-                  Icons.arrow_upward,
-                  format,
-                ),
-              ),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: _GradientDivider(),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatItem(
-                  theme,
-                  'Net Balance',
-                  _stats.balance,
-                  _stats.balance >= 0 ? Colors.green : Colors.red,
-                  _stats.balance >= 0 ? Icons.trending_up : Icons.trending_down,
-                  format,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSpendingInsightsCard(ThemeData theme, NumberFormat format) {
-    final highestTransaction = _stats.getHighestTransaction();
-    final averageDaily = _stats.getAverageDailySpend();
-    final spendingChange = _stats.debitChangePercentage;
-
-    return _GlassmorphicCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Spending Analysis',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (spendingChange != 0) ...[
-            _InsightTile(
-              icon: Icon(
-                spendingChange > 0 ? Icons.trending_up : Icons.trending_down,
-                color: spendingChange > 0 ? Colors.red : Colors.green,
-              ),
-              title: spendingChange > 0
-                  ? 'Spending increased by ${spendingChange.abs().toStringAsFixed(1)}%'
-                  : 'Spending decreased by ${spendingChange.abs().toStringAsFixed(1)}%',
-              subtitle: 'compared to last month',
-              theme: theme,
-            ),
-            const _GradientDivider(),
-          ],
-          _InsightTile(
-            icon: Icon(
-              Icons.calendar_today,
-              color: theme.colorScheme.primary,
-            ),
-            title: 'Average Daily Spend',
-            subtitle: format.format(averageDaily),
-            theme: theme,
-          ),
-          if (highestTransaction != null) ...[
-            const _GradientDivider(),
-            _InsightTile(
-              icon: Icon(
-                Icons.arrow_upward,
-                color: theme.colorScheme.error,
-              ),
-              title: 'Highest Transaction',
-              subtitle:
-                  '${highestTransaction.receiverName ?? 'Unknown'} • ${format.format(highestTransaction.amount)}',
-              theme: theme,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopReceiversCard(ThemeData theme, NumberFormat format) {
-    final topReceivers = _stats.topReceivers;
-    if (topReceivers.isEmpty) return const SizedBox.shrink();
-
-    return _GlassmorphicCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Top Recipients',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...topReceivers.asMap().entries.map((entry) {
-            final index = entry.key;
-            final receiver = entry.value;
-            return Column(
-              children: [
-                if (index > 0) const _GradientDivider(),
-                _ReceiverTile(
-                  name: receiver.key,
-                  amount: format.format(receiver.value),
-                  transactions: _stats.receiverCount[receiver.key] ?? 0,
-                  rank: index + 1,
-                  theme: theme,
-                ),
-              ],
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBankwiseStats(ThemeData theme, NumberFormat format) {
-    return _GlassmorphicCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Bank Distribution',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 24),
-          ...List.generate(_stats.topBanks.length, (index) {
-            final bank = _stats.topBanks[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          bank.key,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        format.format(bank.value),
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  _GradientProgressBar(
-                    value: bank.value / _stats.totalDebit,
-                    backgroundColor: theme.colorScheme.surfaceVariant,
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.primary,
-                        theme.colorScheme.secondary,
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(
+  Widget _buildOverviewCard(
     ThemeData theme,
     String label,
     double amount,
@@ -393,6 +210,9 @@ class _StatsScreenState extends State<StatsScreen> {
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -410,13 +230,181 @@ class _StatsScreenState extends State<StatsScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            format.format(amount),
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              format.format(amount),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInsightsTab(ThemeData theme, NumberFormat format) {
+    final highestTransaction = _stats.getHighestTransaction();
+    final averageDaily = _stats.getAverageDailySpend();
+    final spendingChange = _stats.debitChangePercentage;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _GlassmorphicCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Quick Insights',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              if (spendingChange != 0) ...[
+                _InsightTile(
+                  icon: Icon(
+                    spendingChange > 0
+                        ? Icons.trending_up
+                        : Icons.trending_down,
+                    color: spendingChange > 0 ? Colors.red : Colors.green,
+                  ),
+                  title: spendingChange > 0
+                      ? 'Spending increased by ${spendingChange.abs().toStringAsFixed(1)}%'
+                      : 'Spending decreased by ${spendingChange.abs().toStringAsFixed(1)}%',
+                  subtitle: 'compared to last month',
+                  theme: theme,
+                ),
+                const _GradientDivider(),
+              ],
+              _InsightTile(
+                icon: Icon(
+                  Icons.calendar_today,
+                  color: theme.colorScheme.primary,
+                ),
+                title: 'Average Daily Spend',
+                subtitle: format.format(averageDaily),
+                theme: theme,
+              ),
+              if (highestTransaction != null) ...[
+                const _GradientDivider(),
+                _InsightTile(
+                  icon: Icon(
+                    Icons.arrow_upward,
+                    color: theme.colorScheme.error,
+                  ),
+                  title: 'Highest Transaction',
+                  subtitle:
+                      '${highestTransaction.receiverName ?? 'Unknown'} • ${format.format(highestTransaction.amount)}',
+                  theme: theme,
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildTopReceiversCard(theme, format),
+      ],
+    );
+  }
+
+  Widget _buildDistributionTab(ThemeData theme, NumberFormat format) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _GlassmorphicCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Bank Distribution',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ...List.generate(_stats.topBanks.length, (index) {
+                final bank = _stats.topBanks[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              bank.key,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            format.format(bank.value),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _GradientProgressBar(
+                        value: bank.value / _stats.totalDebit,
+                        backgroundColor: theme.colorScheme.surfaceVariant,
+                        gradient: LinearGradient(
+                          colors: [
+                            theme.colorScheme.primary,
+                            theme.colorScheme.secondary,
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTopReceiversCard(ThemeData theme, NumberFormat format) {
+    final topReceivers = _stats.topReceivers;
+    if (topReceivers.isEmpty) return const SizedBox.shrink();
+
+    return _GlassmorphicCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Top Recipients',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ...topReceivers.asMap().entries.map((entry) {
+            final index = entry.key;
+            final receiver = entry.value;
+            return Column(
+              children: [
+                if (index > 0) const _GradientDivider(),
+                _ReceiverTile(
+                  name: receiver.key,
+                  amount: format.format(receiver.value),
+                  transactions: _stats.receiverCount[receiver.key] ?? 0,
+                  rank: index + 1,
+                  theme: theme,
+                ),
+              ],
+            );
+          }),
         ],
       ),
     );

@@ -9,7 +9,22 @@
 
 FlowTrack is a modern, user-friendly mobile application designed to help you track and analyze your financial transactions through SMS notifications. It automatically processes bank SMS messages to provide you with insightful analytics about your spending patterns.
 
-[Screenshots to be added]
+## 📸 Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><strong>Home Screen</strong></td>
+      <td align="center"><strong>Analytics</strong></td>
+      <td align="center"><strong>Search & Filter</strong></td>
+    </tr>
+    <tr>
+      <td><img src="screenshots/homepage.jpg" width="200"/></td>
+      <td><img src="screenshots/summary.jpg" width="200"/></td>
+      <td><img src="screenshots/search.jpg" width="200"/></td>
+    </tr>
+  </table>
+</div>
 
 ## ✨ Features
 
@@ -48,10 +63,10 @@ FlowTrack is a modern, user-friendly mobile application designed to help you tra
 Currently supports the following SMS formats:
 ```
 Credit Format:
-"Ac XX1234 credited by Rs.X on DD-MM-YY by XXX ref no XXX -KGB"
+"Ac XXXX4321 credited by Rs.1,000.00 on 01-Jan-24 by UPI ref no 123456789 -BANK"
 
 Debit Format:
-"Dear UPI user A/C X2771 debited by 150.0 on date 03Jan25 trf to FAVAZ MAJEED Refno 500339859579. If not u? call 1800111109. -SBI"
+"Dear user A/C XX4321 debited by Rs.500.00 on date 01Jan24 trf to COFFEE SHOP Refno 987654321. -BANK"
 ```
 
 ## 📲 Installation
@@ -97,6 +112,18 @@ This app was developed with several key considerations:
    - Transaction data structure design
    - Efficient filtering and search algorithms
 
+## 🤝 Future Updates
+
+Planned features for upcoming releases:
+- Support for more banks and SMS formats
+- Export transactions to CSV/PDF
+- Custom categories for transactions
+- Budget tracking and alerts
+- Transaction insights with AI
+- Cloud backup option
+- Widgets for quick insights
+- Transaction sharing
+
 ## 🤝 Contributing
 
 Feel free to fork this project and submit pull requests. You can help by:
@@ -106,19 +133,12 @@ Feel free to fork this project and submit pull requests. You can help by:
 - Enhancing the UI/UX
 - Fixing bugs
 
-## 📝 License
+## 📝 Contact
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Flutter team for the amazing framework
-- Material Design team for the design guidelines
-- All contributors and users of the app
-
-## 📧 Contact
-
-[Your Contact Information]
+For support or queries:
+- Email: [Your Email]
+- Twitter: [@YourHandle]
+- GitHub: [Your GitHub]
 
 ---
 
