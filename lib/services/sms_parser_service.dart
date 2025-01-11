@@ -74,36 +74,65 @@ class SMSParserService {
   }
 
   static Transaction? parseKeralaGraminMessage(String body, String sender) {
-    final RegExp accountRegex = RegExp(r'A/c\s+([X\d]+)', caseSensitive: false);
-    final RegExp amountRegex =
-        RegExp(r'Rs\.?(\d+(?:\.\d{1,2})?)', caseSensitive: false);
-    final RegExp balanceRegex =
-        RegExp(r'Bal.*?Rs\s*(\d+(?:\.\d{2})?)', caseSensitive: false);
-    final RegExp dateRegex =
-        RegExp(r'Time\s+(\d{2}-\d{2}-\d{4})', caseSensitive: false);
-    final RegExp msgIdRegex = RegExp(r'Msg Id\s+(\d+)', caseSensitive: false);
+    // Regular expressions for different formats
+    final RegExp accountRegex1 =
+        RegExp(r'A/c\s+([X\d]+)', caseSensitive: false);
+    final RegExp accountRegex2 =
+        RegExp(r'Account\s+([X\d]+)', caseSensitive: false);
 
-    // Extract bank name from message ending
+    final RegExp amountRegex1 =
+        RegExp(r'Rs\.?(\d+(?:\.\d{1,2})?)', caseSensitive: false);
+    final RegExp amountRegex2 =
+        RegExp(r'INR\s+(\d+(?:\.\d{1,2})?)', caseSensitive: false);
+
+    final RegExp balanceRegex = RegExp(
+        r'Bal(?:ance)?\s+(?:after\s+txn\s+)?Rs\s*(\d+(?:\.\d{2})?)',
+        caseSensitive: false);
+
+    // Two date formats
+    final RegExp dateRegex1 =
+        RegExp(r'Time\s+(\d{2}-\d{2}-\d{4})', caseSensitive: false);
+    final RegExp dateRegex2 =
+        RegExp(r'on\s+(\d{2}-\d{2}-\d{4})', caseSensitive: false);
+
+    final RegExp msgIdRegex = RegExp(r'Msg Id\s+(\d+)', caseSensitive: false);
+    final RegExp upiRefRegex =
+        RegExp(r'UPI Ref\. no\.\s+([^\s-]+)', caseSensitive: false);
+    final RegExp senderRegex = RegExp(r'from\s+([^\s]+)', caseSensitive: false);
+
+    // Extract bank name
     final RegExp bankRegex = RegExp(r'-([^-]+)$', caseSensitive: false);
     final bankMatch = bankRegex.firstMatch(body);
     final bankName = bankMatch?.group(1)?.trim() ?? 'Kerala Gramin Bank';
 
-    final accountMatch = accountRegex.firstMatch(body);
-    final amountMatch = amountRegex.firstMatch(body);
+    // Try to match account number
+    final accountMatch =
+        accountRegex1.firstMatch(body) ?? accountRegex2.firstMatch(body);
+
+    // Try to match amount
+    final amountMatch =
+        amountRegex1.firstMatch(body) ?? amountRegex2.firstMatch(body);
+
+    // Try to match date
+    final dateMatch =
+        dateRegex1.firstMatch(body) ?? dateRegex2.firstMatch(body);
+
     final balanceMatch = balanceRegex.firstMatch(body);
-    final dateMatch = dateRegex.firstMatch(body);
     final msgIdMatch = msgIdRegex.firstMatch(body);
+    final upiRefMatch = upiRefRegex.firstMatch(body);
+    final senderMatch = senderRegex.firstMatch(body);
 
     if (amountMatch != null && dateMatch != null) {
       return Transaction(
         amount: double.parse(amountMatch.group(1)!),
         date: dateMatch.group(1)!,
-        refNo: msgIdMatch?.group(1) ?? '',
+        refNo: upiRefMatch?.group(1) ?? msgIdMatch?.group(1) ?? '',
         bank: bankName,
         type: body.toLowerCase().contains('credited') ? 'Credit' : 'Debit',
         accountNumber: accountMatch?.group(1) ?? '',
         balance:
             balanceMatch != null ? double.parse(balanceMatch.group(1)!) : null,
+        receiverName: senderMatch?.group(1),
       );
     }
     return null;

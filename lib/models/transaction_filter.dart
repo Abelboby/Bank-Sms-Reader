@@ -45,3 +45,14 @@ extension TransactionListExtension on List<Transaction> {
     return map((t) => t.bank).toSet();
   }
 }
+
+// Add this extension method after the existing TransactionListExtension
+extension TransactionSorting on List<Transaction> {
+  List<Transaction> sortByDate({bool ascending = false}) {
+    final sorted = List<Transaction>.from(this);
+    sorted.sort((a, b) => ascending
+        ? a.parsedDate.compareTo(b.parsedDate)
+        : b.parsedDate.compareTo(a.parsedDate));
+    return sorted;
+  }
+}

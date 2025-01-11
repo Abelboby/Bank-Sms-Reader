@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Transaction {
   final String type;
@@ -78,5 +78,9 @@ class Transaction {
       balance: json['balance']?.toDouble(),
       receiverName: json['receiverName'] as String?,
     );
+  }
+
+  String getFormattedDate() {
+    return DateFormat('dd-MM-yyyy').format(parsedDate);
   }
 }

@@ -23,6 +23,7 @@ class TransactionCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 48,
@@ -58,6 +59,7 @@ class TransactionCard extends StatelessWidget {
                       color: theme.colorScheme.onSurface.withOpacity(0.6),
                     ),
                   ),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     Container(
@@ -76,21 +78,26 @@ class TransactionCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '•',
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurface.withOpacity(0.3),
+                    if (transaction.refNo.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        '•',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface.withOpacity(0.3),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      transaction.refNo,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
-                        fontFamily: 'monospace',
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          transaction.refNo,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            fontFamily: 'monospace',
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ],

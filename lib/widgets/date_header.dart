@@ -1,12 +1,13 @@
+import 'package:flowtrack/models/transaction.dart';
 import 'package:flutter/material.dart';
 
 class DateHeader extends StatelessWidget {
-  final String date;
+  final Transaction transaction;
   final int transactionCount;
 
   const DateHeader({
     super.key,
-    required this.date,
+    required this.transaction,
     required this.transactionCount,
   });
 
@@ -25,7 +26,7 @@ class DateHeader extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              date,
+              transaction.getFormattedDate(),
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.primary,
                 fontWeight: FontWeight.w600,

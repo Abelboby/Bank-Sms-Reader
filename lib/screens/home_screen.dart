@@ -113,10 +113,8 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
           });
         }
       }
-
-      // Sort transactions by parsed date
       setState(() {
-        transactions.sort((a, b) => b.parsedDate.compareTo(a.parsedDate));
+        transactions = transactions.sortByDate();
       });
       saveTransactions();
     } catch (e) {
@@ -152,23 +150,23 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
     final displayTransactions = filteredTransactions;
     final theme = Theme.of(context);
 
-    // Group transactions by formatted date
-    final Map<String, List<Transaction>> groupedTransactions = {};
+    // Group transactions by parsed date
+    final Map<DateTime, List<Transaction>> groupedTransactions = {};
     for (var transaction in displayTransactions) {
-      final date = transaction.date;
+      final date = DateTime(
+        transaction.parsedDate.year,
+        transaction.parsedDate.month,
+        transaction.parsedDate.day,
+      );
       if (!groupedTransactions.containsKey(date)) {
         groupedTransactions[date] = [];
       }
       groupedTransactions[date]!.add(transaction);
     }
 
-    // Sort dates using parsed DateTime
+    // Sort dates
     final sortedDates = groupedTransactions.keys.toList()
-      ..sort((a, b) {
-        final transA = groupedTransactions[a]!.first;
-        final transB = groupedTransactions[b]!.first;
-        return transB.parsedDate.compareTo(transA.parsedDate);
-      });
+      ..sort((a, b) => b.compareTo(a));
 
     return Scaffold(
       body: Container(
@@ -388,7 +386,7 @@ class _SMSReaderPageState extends State<SMSReaderPage> {
                           child: Column(
                             children: [
                               DateHeader(
-                                date: date,
+                                transaction: dateTransactions.first,
                                 transactionCount: dateTransactions.length,
                               ),
                               ...dateTransactions
